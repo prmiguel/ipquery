@@ -1,0 +1,10 @@
+{
+  "name": "ipquery-api",
+  "version": "1.0.0",
+  "description": "Skill for consuming the ipquery.io IP intelligence API via curl — IP geolocation, ISP, and VPN/proxy/Tor risk lookups.",
+  "author": {
+    "name": "Your Name"
+  },
+  "license": "MIT",
+  "keywords": ["ipquery", "ip-lookup", "geolocation", "api", "curl"]
+}

@@ -51,3 +51,95 @@ Instructions, examples, and references.
 ## Verifying a skill is loaded
 
 After restarting, ask opencode something that should match the skill's description. If the skill description is well-written, opencode will surface it automatically when relevant.
+
+## MCP Server — ipquery.io
+
+An MCP server at `ai/mcp/ipquery-server/` exposes the ipquery.io API as callable tools.
+
+**Tools:**
+- `get_my_ip` — returns your public IP with ISP, location, and risk data
+- `lookup_ip` — takes `ips` (one or more comma-separated IPs) and returns full intelligence
+
+### opencode configuration
+
+Wired in `opencode.json` under `mcpServers`:
+
+```json
+"mcpServers": {
+  "ipquery": {
+    "command": "node",
+    "args": ["ai/mcp/ipquery-server/server.js"]
+  }
+}
+```
+
+### Claude Desktop configuration
+
+Edit `claude_desktop_config.json` (Settings → Developer → Edit Config):
+
+```json
+{
+  "mcpServers": {
+    "ipquery": {
+      "command": "node",
+      "args": ["/absolute/path/to/ai/mcp/ipquery-server/server.js"]
+    }
+  }
+}
+```
+
+Config location by OS:
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+- Linux: `~/.config/Claude/claude_desktop_config.json`
+
+### Claude Code configuration
+
+```bash
+claude mcp add ipquery -- node /absolute/path/to/ai/mcp/ipquery-server/server.js
+```
+
+Or create `.mcp.json` at project root (committable, team-shared):
+
+```json
+{
+  "mcpServers": {
+    "ipquery": {
+      "command": "node",
+      "args": ["ai/mcp/ipquery-server/server.js"]
+    }
+  }
+}
+```
+
+Scopes: `--scope local` (default, per-project), `--scope project` (`.mcp.json`, team-shared), `--scope user` (global).
+
+### Running the server standalone
+
+```bash
+node ai/mcp/ipquery-server/server.js
+```
+
+The server uses stdio transport (JSON-RPC), so it waits for MCP client messages on stdin.
+
+### Claude Desktop Extension (.mcpb)
+
+To package as a one-click installable extension, create a `manifest.json`:
+
+```json
+{
+  "name": "ipquery",
+  "version": "1.0.0",
+  "description": "IP geolocation, ISP, and risk intelligence via ipquery.io",
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server/index.js"]
+    }
+  }
+}
+```
+
+Bundle as `.mcpb` and drag into Claude Desktop Settings → Extensions.

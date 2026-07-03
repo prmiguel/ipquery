@@ -1,0 +1,10 @@
+{
+  "name": "ipquery-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for ipquery.io — IP geolocation, ISP, and risk intelligence",
+  "type": "module",
+  "main": "server.js",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.9.0"
+  }
+}

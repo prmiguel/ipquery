@@ -2,5 +2,11 @@
   "$schema": "https://opencode.ai/config.json",
   "skills": {
     "paths": ["ai/skills"]
+  },
+  "mcpServers": {
+    "ipquery": {
+      "command": "node",
+      "args": ["ai/mcp/ipquery-server/server.js"]
+    }
   }
 }

@@ -3,10 +3,11 @@
   "skills": {
     "paths": ["ai/skills"]
   },
-  "mcpServers": {
+  "mcp": {
     "ipquery": {
-      "command": "node",
-      "args": ["ai/mcp/ipquery-server/server.js"]
+      "type": "local",
+      "command": ["node", "ai/mcp/ipquery-server/server.js"],
+      "enabled": true
     }
   }
 }

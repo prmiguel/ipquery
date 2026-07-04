@@ -1,0 +1,234 @@
+# OpenAPI 3.1 spec for the ipquery.io API
+# Generated from opencode-big-pickle-v1.md (and the SKILL.md symlink)
+#
+# ASSUMPTIONS & GAPS
+#
+# 1. version: The SKILL.md has no version marker. "0.1.0" is assumed.
+# 2. error-response bodies: No error body schema is documented for 404/429/5XX,
+#    so only descriptions are included.
+# 3. GET / response: The doc says plain text is the default for this endpoint,
+#    but the sample shows the full IPInfo object when format=json. Both content
+#    types are listed.
+# 4. format parameter: Listed as a query param on every endpoint. The doc does
+#    not explicitly say query params are accepted on GET /, but the curl examples
+#    use ?format=json with GET /, so it is included.
+# 5. Bulk path: The doc shows the path as /{ip},{ip},{ip},... This spec maps it
+#    to /{ips} for OpenAPI compatibility, with a description explaining the
+#    comma-separated format.
+
+openapi: "3.1.0"
+
+info:
+  title: ipquery.io API
+  description: >-
+    Skill for querying the ipquery.io API (https://api.ipquery.io) to retrieve
+    IP geolocation, ISP, and risk intelligence.
+  version: "0.1.0"  # assumed — no version marker in source
+
+servers:
+  - url: https://api.ipquery.io
+    description: Production server (no authentication required)
+
+paths:
+  /:
+    get:
+      summary: Your Own IP
+      description: Returns the public IP of the requesting client.
+      parameters:
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [json, xml, yaml, text]
+          description: >-
+            Response format. Defaults to `text` for this endpoint (plain IP
+            string).
+      responses:
+        "200":
+          description: Success — parse response per requested format.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IPInfo"
+            text/plain:
+              schema:
+                type: string
+                description: The public IP address of the requesting client (plain text).
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "5XX":
+          $ref: "#/components/responses/ServerError"
+
+  /{ip}:
+    get:
+      summary: Single IP Lookup
+      description: Returns full intelligence for one IP address.
+      parameters:
+        - name: ip
+          in: path
+          required: true
+          schema:
+            type: string
+          description: An IP address to query.
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [json, xml, yaml, text]
+          description: >-
+            Response format. Defaults to `json` for this endpoint.
+      responses:
+        "200":
+          description: Success — parse response per requested format.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IPInfo"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "5XX":
+          $ref: "#/components/responses/ServerError"
+
+  /{ips}:
+    get:
+      summary: Bulk IP Lookup
+      description: >-
+        Query up to 10,000 IPs in a single request by comma-separating them.
+      parameters:
+        - name: ips
+          in: path
+          required: true
+          schema:
+            type: string
+          description: >-
+            Comma-separated list of IP addresses (no spaces). Max 10,000 IPs
+            per request. Example: `1.1.1.1,8.8.8.8`.
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [json, xml, yaml, text]
+          description: >-
+            Response format. Defaults to `json` for this endpoint.
+      responses:
+        "200":
+          description: Success — parse response per requested format.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IPInfo"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "5XX":
+          $ref: "#/components/responses/ServerError"
+
+components:
+  schemas:
+    IPInfo:
+      type: object
+      description: IP geolocation, ISP, and risk intelligence for a single IP address.
+      properties:
+        ip:
+          type: string
+          description: The queried IP address.
+        isp:
+          $ref: "#/components/schemas/ISP"
+        location:
+          $ref: "#/components/schemas/Location"
+        risk:
+          $ref: "#/components/schemas/Risk"
+      # Some endpoints return an array of IPInfo (bulk) or a single object.
+
+    ISP:
+      type: object
+      description: ISP / ASN information.
+      properties:
+        asn:
+          type: string
+          description: Autonomous System Number (e.g. `AS13335`).
+        org:
+          type: string
+          description: Organization name (can be empty).
+        isp:
+          type: string
+          description: Internet Service Provider name.
+
+    Location:
+      type: object
+      description: Geographic location information.
+      properties:
+        country:
+          type: string
+          description: Country name (e.g. `Australia`).
+        country_code:
+          type: string
+          description: ISO 3166-1 alpha-2 country code (e.g. `AU`).
+        city:
+          type: string
+          description: City name (e.g. `Sydney`).
+        state:
+          type: string
+          description: State / region / province name.
+        zipcode:
+          type: string
+          description: Postal / ZIP code (may be empty).
+        latitude:
+          type: number
+          description: Decimal latitude.
+        longitude:
+          type: number
+          description: Decimal longitude.
+        timezone:
+          type: string
+          description: IANA timezone identifier (e.g. `Australia/Sydney`).
+        localtime:
+          type: string
+          description: Local date-time in ISO 8601 format.
+
+    Risk:
+      type: object
+      description: Risk assessment flags and score.
+      properties:
+        is_mobile:
+          type: boolean
+          description: Whether the IP belongs to a mobile carrier.
+        is_vpn:
+          type: boolean
+          description: Whether the IP is a known VPN endpoint.
+        is_tor:
+          type: boolean
+          description: Whether the IP is a known Tor exit node.
+        is_proxy:
+          type: boolean
+          description: Whether the IP is a known public proxy.
+        is_datacenter:
+          type: boolean
+          description: Whether the IP belongs to a datacenter / hosting.
+        risk_score:
+          type: number
+          description: Overall risk score (0 = benign, higher = risky).
+      # NOTE: When requesting XML format, the <risk> section only includes
+      # is_datacenter; other risk fields are omitted.
+
+  responses:
+    NotFound:
+      description: >-
+        Invalid / unresolvable IP. The IP may be reserved, bogon, or
+        malformed.
+    RateLimited:
+      description: >-
+        Rate-limit exceeded. Implement exponential backoff.
+    ServerError:
+      description: >-
+        Server error. Retry with backoff; contact support if persistent.

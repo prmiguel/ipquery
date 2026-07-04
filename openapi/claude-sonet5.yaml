@@ -1,0 +1,215 @@
+openapi: 3.1.0
+info:
+  title: ipquery-api
+  description: >-
+    Reference for consuming the ipquery.io IP intelligence API via curl —
+    lookup IP geolocation, ISP, and risk/VPN/proxy/Tor data for a single IP,
+    the caller's own IP, or a bulk batch of IPs.
+  version: 1.0.0 # ASSUMPTION: no version marker present in source SKILL.md; set to 1.0.0
+servers:
+  - url: https://api.ipquery.io
+    description: Production (no auth required)
+
+paths:
+  /:
+    get:
+      operationId: getOwnIp
+      summary: Get the caller's own public IP
+      description: >-
+        Returns the caller's current public IP. Defaults to plain text if no
+        format is specified.
+      parameters:
+        - name: format
+          in: query
+          required: false
+          description: >-
+            Response format override. Only "json" is demonstrated for this
+            endpoint in the source doc; xml/yaml/text are documented as
+            globally supported formats but not shown against "/" specifically.
+          schema:
+            type: string
+            enum: [json, xml, yaml, text]
+      responses:
+        "200":
+          description: Own IP address
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: "203.0.113.42"
+            application/json:
+              schema:
+                type: object
+                required: [ip]
+                properties:
+                  ip:
+                    type: string
+                    description: Caller's public IP address
+              example:
+                ip: "203.0.113.42"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /{ip}:
+    get:
+      operationId: getIpInfo
+      summary: Full intel on one IP
+      description: Returns location, ISP, and risk scoring for a specific IP address.
+      parameters:
+        - name: ip
+          in: path
+          required: true
+          description: IPv4 or IPv6 address to look up.
+          schema:
+            type: string
+        - name: format
+          in: query
+          required: false
+          description: Response format override. Defaults to json for this endpoint.
+          schema:
+            type: string
+            enum: [json, xml, yaml, text]
+            default: json
+      responses:
+        "200":
+          description: IP intelligence for the requested address
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IpInfo"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /{ips}:
+    get:
+      operationId: getBulkIpInfo
+      summary: Bulk IP lookup
+      description: >-
+        Comma-separated list of IPs queried at once. Results are returned as
+        a list, in the same order as requested. Batch limit: 10,000 IPs per
+        request.
+      parameters:
+        - name: ips
+          in: path
+          required: true
+          description: >-
+            Comma-separated list of IPv4/IPv6 addresses, e.g.
+            "1.1.1.1,8.8.8.8". Maximum 10,000 IPs per request.
+          schema:
+            type: string
+        - name: format
+          in: query
+          required: false
+          description: Response format override. Defaults to json for this endpoint.
+          schema:
+            type: string
+            enum: [json, xml, yaml, text]
+            default: json
+      responses:
+        "200":
+          description: Array of IP intelligence objects, in request order
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IpInfo"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+components:
+  schemas:
+    IpInfo:
+      type: object
+      required: [ip, isp, location, risk]
+      properties:
+        ip:
+          type: string
+          description: The queried IP address.
+        isp:
+          type: object
+          required: [asn, org, isp]
+          properties:
+            asn:
+              type: string
+              description: Autonomous System Number. # ASSUMPTION: description inferred from field name; not stated in source
+            org:
+              type: string
+              description: Organization associated with the IP. # ASSUMPTION: not stated in source
+            isp:
+              type: string
+              description: Internet service provider name. # ASSUMPTION: not stated in source
+        location:
+          type: object
+          required: [country, country_code, city, state, zipcode, timezone]
+          properties:
+            country:
+              type: string
+              description: Full name of the country.
+            country_code:
+              type: string
+              description: Two-letter ISO 3166-1 alpha-2 country code.
+            city:
+              type: string
+              description: City name.
+            state:
+              type: string
+              description: Region or state name.
+            zipcode:
+              type: string
+              description: Postal code.
+            timezone:
+              type: string
+              description: Timezone identifier.
+            latitude:
+              type: number
+              # GAP: present in the /{ip} sample response but not documented in
+              # the source's Location data-dictionary table, and absent from
+              # the bulk-endpoint sample entirely — no description available,
+              # and marked not required since the bulk sample omits it.
+            longitude:
+              type: number
+              # GAP: same as latitude above.
+        risk:
+          type: object
+          required: [is_mobile, is_vpn, is_tor, is_proxy, risk_score]
+          properties:
+            is_mobile:
+              type: boolean
+              description: True if associated with a cellular network.
+            is_vpn:
+              type: boolean
+              description: True if belongs to a known VPN provider.
+            is_tor:
+              type: boolean
+              description: True if a known Tor exit node.
+            is_proxy:
+              type: boolean
+              description: True if a known public proxy.
+            risk_score:
+              type: integer
+              minimum: 0
+              maximum: 100
+              description: Score indicating likelihood of malicious activity.
+
+  responses:
+    BadRequest:
+      description: Invalid IP format or query parameters.
+    RateLimited:
+      description: Rate limit exceeded — back off and retry later.
+    ServerError:
+      description: >-
+        Problem on ipquery's side — retry, then report if the issue
+        persists.

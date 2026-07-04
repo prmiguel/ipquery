@@ -1,0 +1,44 @@
+{
+  "model": "anthropic/claude-sonnet",
+  "default_agent": "code",
+  "instructions": ["CONTEXT.md", "docs/**/*.md"],
+  "skills": {
+    "paths": ["./my-skills"],
+    "urls": ["https://example.com/.well-known/skills/"]
+  },
+  "plugin": ["npm:my-plugin", "file://./local-plugin"],
+  "mcp": {
+    "local-server": {
+      "type": "local",
+      "command": ["node", "server.js"],
+      "enabled": true
+    }
+  },
+  "permission": {
+    "bash": "allow",
+    "edit": { "src/**": "allow", "*": "ask" }
+  },
+  "compaction": {
+    "auto": true,
+    "prune": true
+  },
+  "snapshot": false,
+  "share": "manual",
+  "autoupdate": "notify",
+  "username": "default",
+  "small_model": "anthropic/claude-haiku",
+  "provider": {
+    "anthropic": {
+      "options": {
+        "apiKey": "",
+        "baseURL": "https://api.anthropic.com",
+        "timeout": 300000
+      },
+      "models": {},
+      "whitelist": [],
+      "blacklist": []
+    }
+  },
+  "disabled_providers": [],
+  "enabled_providers": []
+}

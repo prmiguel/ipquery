@@ -109,4 +109,39 @@ One-line summary: ...
 ---
 
 Generate the report and save it as described.
+
+---
+
+## Real-World Example: v1 → v2 Optimization (opencode/big-pickle)
+
+### Size & Reduction
+
+| Metric | v1 | v2 | Reduction |
+|--------|----|----|-----------|
+| Characters | 9,885 | 3,930 | **60.2%** |
+| Estimated tokens (~4 chars/token) | 2,471 | 982 | **60.3%** |
+| Lines | 379 | 91 | **76.0%** |
+
+### What Was Cut, Merged, or Reformatted
+
+- **Endpoints section restructured** — collapsed `### 1.`, `### 2.`, `### 3.` into flat `###` entries with inline descriptions.
+- **Own-IP JSON sample removed** — same shape as single IP; a one-liner note points to `?format=json`.
+- **YAML and XML samples removed** — non-essential format variants; JSON sample shows all fields.
+- **Extra curl examples cut** — only one curl per endpoint kept; `?format=` documented in formats table.
+- **JSON samples minified** — collapsed to single-line, preserving every field name and value.
+- **Second bulk-array entry removed** — one entry shows structure; `[ ]` shows it's an array.
+- **Data dictionary merged** — four sub-tables consolidated into one flat table with dotted paths (`isp.asn`).
+- **Format-table prose removed** — "Default" column in the table captures it.
+- **Errors & Usage merged** — error codes, backoff loop, status check, XML/text notes in one section.
+- **Illustrative `jq` examples cut** — data dictionary + agent's `jq` knowledge is sufficient.
+- **Proxied-clients paragraph collapsed** — to one sentence appended to `GET /`.
+- **Bulk-handling bullet list merged** — inline in the bulk endpoint section.
+- **Format-overrides list cut** — redundant with formats table.
+
+### What Was Deliberately NOT Reduced Further
+
+- **Frontmatter `description`** — untouched to preserve triggering behavior.
+- **All response field names in JSON** — every key (`is_mobile`, `is_vpn`, `is_tor`, etc.) present for schema learning.
+- **429 backoff shell loop** — prevents silent retry without backoff.
+- **Full data dictionary** — every field from `isp`, `location`, `risk`, and top-level `ip` listed with type and description.
 ```

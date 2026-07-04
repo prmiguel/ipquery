@@ -1,5 +1,6 @@
 {
-  "model": "anthropic/claude-sonnet",
+  "$schema": "https://app.kilo.ai/config.json",
+  // "model": "anthropic/claude-sonnet",
   "default_agent": "code",
   "instructions": ["CONTEXT.md", "docs/**/*.md"],
   "skills": {
@@ -26,19 +27,19 @@
   "share": "manual",
   "autoupdate": "notify",
   "username": "default",
-  "small_model": "anthropic/claude-haiku",
-  "provider": {
-    "anthropic": {
-      "options": {
-        "apiKey": "",
-        "baseURL": "https://api.anthropic.com",
-        "timeout": 300000
-      },
-      "models": {},
-      "whitelist": [],
-      "blacklist": []
-    }
-  },
-  "disabled_providers": [],
-  "enabled_providers": []
+  // "small_model": "anthropic/claude-haiku",
+  // "provider": {
+  //   "anthropic": {
+  //     "options": {
+  //       "apiKey": "",
+  //       "baseURL": "https://api.anthropic.com",
+  //       "timeout": 300000
+  //     },
+  //     "models": {},
+  //     "whitelist": [],
+  //     "blacklist": []
+  //   }
+  // },
+  // "disabled_providers": [],
+  // "enabled_providers": []
 }

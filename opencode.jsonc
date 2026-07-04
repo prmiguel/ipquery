@@ -3,6 +3,15 @@
   "skills": {
     "paths": ["ai/skills"]
   },
+  "watcher": {
+    "ignore": [
+      "**/*.log",
+      "tmp*/**",
+      "node_modules/**",
+      ".git/**",
+      "dist/**"
+    ]
+  },
   "mcp": {
     "ipquery": {
       "type": "local",
